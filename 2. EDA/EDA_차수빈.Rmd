@@ -1,0 +1,314 @@
+---
+title: "EDA"
+output: word_document
+---
+
+# **데이터 불러오기**
+
+```{r}
+bird <- read.csv('./data/bird_preprocessed.csv')
+```
+
+```{r}
+head(bird)
+```
+
+```{r}
+dim(bird)
+```
+
+# **변수별 분포 확인**
+
+```{r}
+# 시각화를 위해 ggplot2 로드
+library(ggplot2)
+```
+
+## **Target**
+```{r}
+# type 변수의 분포를 시각화하고 막대 위에 count 표시
+ggplot(bird, aes(x = type, fill = type)) +
+  geom_bar(alpha = 0.5) +
+  geom_text(stat = 'count', aes(label = after_stat(count)), 
+            vjust=-0.5, size = 3) +
+  labs(title = "Distribution of Bird Types", x = "Type", y = "Count") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+- 각 type에 속하는 데이터의 개수가 다름을 확인할 수 있다.
+- `SO`(노래하는 조류)와 `SW`(수영하는 조류)가 전체 데이터의 약 60% 정도를 차지한다.
+
+## **Features**
+- density plot을 통해 type에 따른 개별 변수의 분포를 확인하였다.
+- 이후 type별로 뼈의 길이(length)와 지름(width)의 관계를 파악하였다.
+
+### **1. humerus(위날개뼈)**
+
+#### **길이**
+```{r}
+# type별 huml의 분포 시각화
+ggplot(bird, aes(x = huml, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Huml", x = "Humerus Length", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 위날개뼈 길이의 분포가 다름을 확인할 수 있다.
+- 위날개뼈 길이의 범위 또한 차이가 꽤나 큰 것을 확인할 수 있다.
+  - SO(노래하는 조류), P(산악지대에 서식하는 조류)의 경우 다른 type에 비해 위날개뼈의 길이가 짧고, SW(수영하는 조류)의 경우 다른 type에 비해 위날개뼈의 길이가 긴 것을 확인할 수 있다.
+  - 나머지 type은 비슷한 길이 범위를 보임을 확인할 수 있다.
+
+#### **지름**
+```{r}
+# type별 humw의 분포 시각화
+ggplot(bird, aes(x = humw, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Humw", x = "Humerus Width", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 위날개뼈 지름의 분포가 다름을 확인할 수 있다.
+- 위날개뼈 지름의 범위 또한 차이가 존재함을 확인할 수 있다.
+  - SO(노래하는 조류), P(산악지대에 서식하는 조류)의 경우 다른 type에 비해 위날개뼈의 지름이 짧고, SW(수영하는 조류)의 경우 다른 type에 비해 위날개뼈의 지름이 긴 것을 확인할 수 있다.
+  - 나머지 type은 비슷한 지름 범위를 보임을 확인할 수 있다.
+
+#### **huml vs humw**
+```{r}
+# 각 type별 huml과 humw의 관계 시각화
+ggplot(bird, aes(x = huml, y = humw, color = type)) +
+  geom_point() +
+  labs(title = "Huml vs Humw", x = "Humerus Length", y = "Humerus Width") +
+  theme_minimal() +
+  facet_wrap(~ type, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1), 
+        legend.position = "none")
+```
+
+- 모든 type에서 humerus(위날개뼈)의 길이와 지름은 양의 상관관계가 있음을 확인할 수 있다.
+
+### **2. ulna(자뼈)**
+- 날개뼈 바로 위의 뼈
+
+#### **길이**
+```{r}
+# type별 ulnal의 분포 시각화
+ggplot(bird, aes(x = ulnal, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Ulnal", x = "Ulna Length", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 자뼈 길이의 분포가 다름을 확인할 수 있다.
+- 자뼈 길이의 범위 또한 차이가 꽤나 큰 것을 확인할 수 있다.
+  - SO(노래하는 조류), P(산악지대에 서식하는 조류)의 경우 다른 type에 비해 자뼈의 길이가 짧고, SW(수영하는 조류)의 경우 다른 type에 비해 자뼈의 길이가 긴 것을 확인할 수 있다.
+  - 나머지 type은 비슷한 길이 범위를 보임을 확인할 수 있다.
+
+#### **지름**
+```{r}
+# type별 humw의 분포 시각화
+ggplot(bird, aes(x = ulnaw, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Ulnaw", x = "Ulna Width", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 자뼈 지름의 분포가 다름을 확인할 수 있다.
+- 자뼈 지름의 범위 또한 차이가 존재함을 확인할 수 있다.
+  - SO(노래하는 조류), P(산악지대에 서식하는 조류)의 경우 다른 type에 비해 자뼈의 지름이 짧고, SW(수영하는 조류)의 경우 다른 type에 비해 자뼈의 지름이 긴 것을 확인할 수 있다.
+  - 나머지 type은 비슷한 지름 범위를 보임을 확인할 수 있다.
+
+#### **ulnal vs ulnaw**
+```{r}
+# 각 type별 huml과 humw의 관계 시각화
+ggplot(bird, aes(x = ulnal, y = ulnaw, color = type)) +
+  geom_point() +
+  labs(title = "Ulnal vs Ulnaw", x = "Ulna Length", y = "Ulna Width") +
+  theme_minimal() +
+  facet_wrap(~ type, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1), 
+        legend.position = "none")
+```
+
+- 모든 type에서 ulna(자뼈)의 길이와 지름은 양의 상관관계가 있음을 확인할 수 있다.
+
+### **3. femur(넓적다리뼈)**
+
+#### **길이**
+```{r}
+# type별 feml의 분포 시각화
+ggplot(bird, aes(x = feml, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Feml", x = "Femur Length", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+- type별로 넓적다리뼈 길이의 분포가 다름을 확인할 수 있다. 
+- 넓적다리뼈 길이의 범위 또한 차이가 꽤나 큰 것을 확인할 수 있다. 
+  - R(사냥하는 조류), SW(수영하는 조류), W(물가에 서식하는 조류)의 경우 다른 type에 비해 넓적다리뼈의 길이가 긴 것을 확인할 수 있다.
+  - 나머지 type은 비슷한 길이 범위를 보임을 확인할 수 있다.
+
+#### **지름**
+```{r}
+# type별 femw의 분포 시각화
+ggplot(bird, aes(x = femw, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Femurw", x = "Femur Width", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 넓적다리뼈 지름의 분포가 다름을 확인할 수 있다. 
+- 넓적다리뼈 지름의 범위 또한 차이가 꽤나 큰 것을 확인할 수 있다. 
+  - R(사냥하는 조류), SW(수영하는 조류), W(물가에 서식하는 조류)의 경우 다른 type에 비해 넓적다리뼈의 지름이 긴 것을 확인할 수 있다.
+  - 나머지 type은 비슷한 범위를 보임을 확인할 수 있다.
+
+#### **feml vs femw**
+```{r}
+# 각 type별 feml과 femw의 관계 시각화
+ggplot(bird, aes(x = feml, y = femw, color = type)) +
+  geom_point() +
+  labs(title = "Feml vs Femw", x = "Femur Length", y = "Femur Width") +
+  theme_minimal() +
+  facet_wrap(~ type, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1), 
+        legend.position = "none")
+```
+
+- 굉장히 강한 양의 상관관계를 보인다.
+
+### **4. tibiotarsus(정강발목뼈)**
+
+#### **길이**
+```{r}
+# type별 tibl의 분포 시각화
+ggplot(bird, aes(x = tibl, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Tibl", x = "Tibiotarsus Length", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 정강발목뼈 길이의 분포가 다름을 확인할 수 있다. 
+- 정강발목뼈 길이의 범위 또한 차이가 꽤나 큰 것을 확인할 수 있다. 
+  - R(사냥하는 조류), SW(수영하는 조류), W(물가에 서식하는 조류)의 경우 다른 type에 비해 넓적다리뼈의 길이가 긴 것을 확인할 수 있다.
+  - 특히 W(물가에 서식하는 조류)의 경우 비교적 길이가 긴 R과 SW에 비해서도 정강발목뼈 길이의 최댓값이 2배 정도 더 크다.
+    - 이는 물가에 서식하는 조류에게서 보이는 주요한 생태학적 특징임을 짐작할 수 있다.
+  - 나머지 type은 비슷한 길이 범위를 보임을 확인할 수 있다.
+  
+#### **지름**
+```{r}
+# type별 tibw의 분포 시각화
+ggplot(bird, aes(x = tibw, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Tibw", x = "Tibiotarsus Width", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 정강발목뼈 지름의 분포가 다름을 확인할 수 있다. 
+- 정강발목뼈 지름의 범위 또한 차이가 꽤나 큰 것을 확인할 수 있다. 
+  - R(사냥하는 조류), SW(수영하는 조류), W(물가에 서식하는 조류)의 경우 다른 type에 비해 정강발목뼈의 지름이 긴 것을 확인할 수 있다.
+  - 나머지 type은 비슷한 범위를 보임을 확인할 수 있다.
+
+#### **tibl vs tibw**
+```{r}
+# 각 type별 tibl과 tibw의 관계 시각화
+ggplot(bird, aes(x = tibl, y = tibw, color = type)) +
+  geom_point() +
+  labs(title = "Tibl vs Tibw", x = "Tibiotarsus Length", y = "Tibiotarsus Width") +
+  theme_minimal() +
+  facet_wrap(~ type, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1), 
+        legend.position = "none")
+```
+
+- 굉장히 강한 양의 상관관계를 보이고 있다.
+
+### **5. tarsometatarsus(뒷발목뼈)**
+
+#### **길이**
+```{r}
+# type별 tarl의 분포 시각화
+ggplot(bird, aes(x = tarl, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Tarl", x = "Tarsometatarsus Length", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 뒷발목뼈 길이의 분포가 다름을 확인할 수 있다. 
+- 뒷발목뼈 길이의 범위 또한 차이가 꽤나 큰 것을 확인할 수 있다. 
+  - R(사냥하는 조류), SW(수영하는 조류), W(물가에 서식하는 조류)의 경우 다른 type에 비해 넓적다리뼈의 길이가 긴 것을 확인할 수 있다.
+  - 특히 W(물가에 서식하는 조류)의 경우 비교적 길이가 긴 R과 SW에 비해서도 뒷발목뼈 길이의 최댓값이 1.5배 정도 더 크다.
+    - 이는 물가에 서식하는 조류에게서 보이는 주요한 생태학적 특징임을 짐작할 수 있다.
+  - 나머지 type은 비슷한 길이 범위를 보임을 확인할 수 있다.
+- SW(수영하는 조류)의 경우 뒷발목뼈의 분포가 약간 왜곡되었다고 볼 수 있다.
+  
+#### **지름**
+```{r}
+# type별 tarw의 분포 시각화
+ggplot(bird, aes(x = tarw, fill = type)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "Tarw", x = "Tarsometatarsus Width", y = "Density") +
+  theme_minimal() +
+  facet_wrap(~ type, nrow = 2, ncol = 3, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1))
+```
+
+- type별로 뒷발목뼈 지름의 분포가 다름을 확인할 수 있다. 
+- 뒷발목뼈 지름의 범위 또한 차이가 꽤나 큰 것을 확인할 수 있다. 
+  - R(사냥하는 조류), SW(수영하는 조류)의 경우 다른 type에 비해 뒷발목뼈의 지름이 긴 것을 확인할 수 있다.
+  - P(산악지대에 서식하는 조류), SO(노래하는 조류)의 경우 다른 type에 비해 뒷발목뼈의 지름이 짧은 것을 확인할 수 있다.
+
+#### **tarl vs tarw**
+```{r}
+# 각 type별 tarl과 tarw의 관계 시각화
+ggplot(bird, aes(x = tarl, y = tarw, color = type)) +
+  geom_point() +
+  labs(title = "Tarl vs Tarw", x = "Tarsometatarsus Length", y = "Tarsometatarsus Width") +
+  theme_minimal() +
+  facet_wrap(~ type, scales = "free") +
+  theme(strip.text.x = element_text(angle = 0, hjust = 1), 
+        legend.position = "none")
+```
+
+- 약한 양의 상관관계를 보이고 있다.
+
+# **변수 간 상관관계 확인**
+
+```{r}
+# corrplot 패키지 로드
+library(corrplot)
+```
+
+```{r}
+# 변수 간 상관관계 분석
+corr_mtx <- cor(bird[, -11])
+
+# 히트맵 생성
+corrplot(corr_mtx, method = "color", type = "lower", 
+         tl.col = "black", tl.srt = 45,
+         addCoef.col = "black", number.cex = 0.7,
+         col = colorRampPalette(c("white", "lightblue"))(10),)
+```
+
+- 대부분의 변수들이 강한 양의 상관관계를 가지고 있음을 확인할 수 있다.
+- 또한, 같은 종류의 뼈인 경우 길이와 지름이 강한 상관관계를 가짐을 확인할 수 있다.
+
+
+
+
