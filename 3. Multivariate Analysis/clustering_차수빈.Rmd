@@ -1,0 +1,376 @@
+---
+title: "Clustering_2nd"
+output: word_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+# **데이터 불러오기**
+```{r}
+bird <- read.csv('./data/bird_preprocessed.csv')
+head(bird)
+```
+
+```{r}
+dim(bird)
+```
+
+# **군집 분석**
+
+```{r}
+### feature 변수들만 선택
+x <- bird[,-11]
+```
+
+## **1. 군집화 방법 선택**
+### **1-1. 계층적 군집화**
+
+**최단연결법**
+```{r}
+### 군집화 수행
+hc1 <- hclust(dist(x)^2, method = "single")
+```
+
+```{r}
+### 결과 확인
+# 원래 데이터의 분포 파악
+table(bird$type)
+```
+
+```{r}
+### 군집 1
+table(bird[cutree(hc1, k = 5) == 1, "type"])
+```
+- 대부분의 데이터가 하나의 군집으로 군집화 되는 것을 확인할 수 있다.
+
+**최장연결법**
+```{r}
+### 군집화 수행
+hc2 <- hclust(dist(x)^2, method = "complete")
+```
+
+```{r}
+### 결과 확인
+# 원래 데이터의 분포 파악
+table(bird$type)
+```
+
+```{r}
+### 군집 1
+table(bird[cutree(hc2, k = 5) == 1, "type"])
+```
+
+```{r}
+### 군집 2
+table(bird[cutree(hc2, k = 5) == 2, "type"])
+```
+
+```{r}
+### 군집 3
+table(bird[cutree(hc2, k = 5) == 3, "type"])
+```
+
+```{r}
+### 군집 4
+table(bird[cutree(hc2, k = 5) == 4, "type"])
+```
+
+```{r}
+### 군집 5
+table(bird[cutree(hc2, k = 5) == 5, "type"])
+```
+
+- 군집 1, 군집 2 이후에 생성되는 군집들의 크기가 매우 작은 것을 확인할 수 있다.
+  - 군집 개수 조정이 필요함을 시사한다.
+
+**평균연결법**
+```{r}
+### 군집화 수행
+hc3 <- hclust(dist(x)^2, method = "average")
+```
+
+```{r}
+### 결과 확인
+# 원래 데이터의 분포 파악
+table(bird$type)
+```
+
+```{r}
+### 군집 1
+table(bird[cutree(hc3, k = 5) == 1, "type"])
+```
+- 대부분의 데이터가 하나의 군집으로 군집화 되는 것을 확인할 수 있다.
+
+### **1-2. 비계층적 군집화**
+**K-Means**  
+```{r}
+### 군집화 수행
+bird_k <- kmeans(x, centers = 5)
+```
+
+```{r}
+### 결과 확인
+# 원래 데이터의 분포 파악
+table(bird$type)
+```
+
+```{r}
+### 군집 1
+table(bird[bird_k$cluster == 1,11])
+```
+```{r}
+### 군집 2
+table(bird[bird_k$cluster == 2,11])
+```
+
+```{r}
+### 군집 3
+table(bird[bird_k$cluster == 3,11])
+```
+```{r}
+### 군집 4
+table(bird[bird_k$cluster == 4,11])
+```
+
+```{r}
+### 군집 5
+table(bird[bird_k$cluster == 5,11])
+```
+
+- 대부분의 데이터가 특정한 군집으로 군집화 됨을 확인할 수 있다.
+- 다만, 일부 군집의 경우 지나치게 세분화되는 양상이 보인다.
+  - 적절한 군집 개수의 선택이 필요하다고 판단된다.
+
+➡ 여러 군집화 방법 중 **K-Means** 군집화 방법을 활용하기로 결정하였다.
+
+
+## **2. 군집 개수 선택**
+(수업 내용 아닙니다..)
+
+- K-Means 군집화의 성능 지표를 이너셔(Inertia)라고 한다.
+  - 이너셔는 각 샘플과 가장 가까운 센트로이드 사이의 평균 제곱 거리를 측정한 수치이다.
+- 클러스터 수와 이너셔는 반비례 관계에 있다.
+  - 클러스터 수가 늘어감에 따라 이너셔가 급격하게 감소하고 어느 지점에서는 완만하게 감소한다. 
+  - 이너셔 감소 기울기가 급격하게 변하는 지점이 있는데, 이를 엘보우라고 하고 해당 지점 근처를 최적 군집 수로 결정한다.
+
+### **Elbow Plot 시각화**
+
+```{r}
+### Elbow plot을 그리는 함수 정의
+plot_elbow <- function(data, max_k) {
+  wcss <- numeric(max_k)
+  
+  # 군집 수에 따른 WCSS 계산
+  for (i in 1:max_k) {
+    kmeans_model <- kmeans(data, centers = i)
+    wcss[i] <- kmeans_model$tot.withinss
+  }
+  
+  # Elbow plot 그리기
+  plot(1:max_k, wcss, 
+       type = "b", pch = 19, 
+       xlab = "Clusters (k)", ylab = "Inertia", 
+       main = "Optimal number of clusters")
+}
+```
+
+```{r}
+## 최대 군집 수 설정
+max_clusters <- 5
+
+## Elbow plot 그리기
+plot_elbow(x, max_clusters)
+```
+- 2 ~ 3개의 군집이 가장 적절해 보인다.
+
+**2개 군집으로 군집화**
+```{r}
+### 군집화 수행
+kmeans_2 <- kmeans(x, centers = 2)
+```
+
+```{r}
+### 결과 확인
+# 원래 데이터의 분포 파악
+table(bird$type)
+```
+
+```{r}
+### 군집 1
+table(bird[kmeans_2$cluster == 1,11])
+```
+
+```{r}
+### 군집 2
+table(bird[kmeans_2$cluster == 2,11])
+```
+
+**3개 군집으로 군집화**
+
+```{r}
+### 군집화 수행
+kmeans_3 <- kmeans(x, centers = 3)
+```
+
+```{r}
+### 결과 확인
+# 원래 데이터의 분포 파악
+table(bird$type)
+```
+
+```{r}
+### 군집 1
+table(bird[kmeans_3$cluster == 1,11])
+```
+
+```{r}
+### 군집 2
+table(bird[kmeans_3$cluster == 2,11])
+```
+
+```{r}
+### 군집 3
+table(bird[kmeans_3$cluster == 3,11])
+```
+➡ 3개 군집으로 군집화 하는 경우, 지나치게 세분화되는 경향이 일부 존재하기에, 2개의 군집으로 군집화 하는 것이 더 적절해 보인다.
+
+## **3. 표준화**
+- K-means 군집 분석은 관측치 간의 거리를 이용하기 때문에 변수의 단위가 결과에 큰 영향을 미친다.
+  - 따라서, 표준화를 수행한 후 군집화를 다시 시도해 보았다.
+  
+```{r}
+x_std <- scale(x)
+head(x_std)
+```
+
+**군집화 수행**
+
+```{r}
+### 군집화 수행
+kmeans_2_std <- kmeans(x_std, centers = 2)
+```
+
+```{r}
+### 결과 확인
+# 원래 데이터의 분포 파악
+table(bird$type)
+```
+
+```{r}
+### 군집 1
+table(bird[kmeans_2_std$cluster == 1,11])
+```
+
+```{r}
+### 군집 2
+table(bird[kmeans_2_std$cluster == 2,11])
+```
+- 스케일링이 군집화 결과에 미치는 영향은 해당 데이터에서는 적음을 확인할 수 있다.
+
+```{r}
+### 군집화 결과 저장
+
+bird$cluster <- kmeans_2_std$cluster
+head(bird)
+```
+
+
+## **4. 결과 해석**
+(결과 해석은 `kmeans_2_std`로 진행)
+
+### **시각화**
+- 2차원으로 차원 축소 후 2차원 평면에 시각화 하였다.
+
+```{r}
+library(ggplot2)
+
+# 군집화 결과를 포함한 데이터로 PCA 수행
+pca_result <- princomp(bird[,-11], cor = FALSE)
+
+# 원래 데이터프레임에 PCA 결과(주성분 점수) 추가
+bird$pca_comp1 <- pca_result$scores[, 1] # Comp 1
+bird$pca_comp2 <- pca_result$scores[, 2] # Comp 2
+
+# 시각화
+ggplot(bird, aes(x = pca_comp1, y = pca_comp2, 
+                 color = type, shape = as.factor(cluster))) +
+  geom_point(size = 3) +
+  scale_color_manual(values = c("red", "blue", "green", "purple", "orange")) +
+  scale_shape_manual(values = c(19, 17)) +
+  labs(x = "PC1", y = "PC2", color = "Type", shape = "Cluster") +
+  theme_minimal()
+```
+
+### **결과 해석**
+- type P와 type SO는 다른 type들과 확연하게 구분된다.
+  - P: Scansorial Birds (산악지대에 서식하는 조류)
+  - SO : Singing Birds (노래하는 조류)
+  - 이들은 다른 type에 비해 전체적으로 뼈의 길이와 지름이 작은 종류이다.  
+  
+- type SW의 경우 군집 1과 군집 2에 속하는 데이터의 비율이 거의 50:50이다.
+  - SW: 수영하는 조류
+  - 현재 데이터에서 3분의 1에 해당하는 조류의 type이 SW이다.
+  - 또한, 모든 변수들에 대해 SW의 데이터 분포가 넓었던 점을 감안할 때 적절한 군집화 결과라고 판단된다.  
+  
+- type R의 경우 대부분의 데이터가 군집 1에 속하였고, 일부 데이터만이 군집 2에 속함을 확인할 수 있다.
+  - R: Raptors (사냥하는 조류)
+  - type R에 해당하는 새들의 경우 대부분 뼈의 길이와 지름이 크다는 특징을 지니는데, 해당 새들 중 일부 작은 새들이 군집 2로 분류된 것이라고 판단할 수 있다.  
+  
+- type W의 경우 대부분의 데이터가 군집 2에 속하였고, 일부 데이터만이 군집 1에 속함을 확인할 수 있다.
+  - W: Wading Birds (물가에 서식하는 조류)
+  - EDA 시 boxplot 시각화 결과로 미루어 볼 때, type W에 속하는 데이터들 중 일부 뼈의 길이와 지름이 큰 새들이 존재함을 확인할 수 있었다.
+  - 따라서, 유난히 큰 새들만이 군집 1로 군집화 되었음을 짐작할 수 있다.
+  
+
+## **추가적인 개선 방안(?)**
+- 변수들의 왜곡 정도가 크니 로그 변환(`log(x + 1)`) 후 군집화
+- 변수들 간의 상관관계가 크기 PCA로 차원축소(2~3개) 후 군집화
+
+(사실 계층적 군집분석으로 군집화 시 군집화가 거의 안되서 해당 방법들까지 시도해 봤던 거라, 굳이 여기까진 안 가도 될 것 같아요.)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
