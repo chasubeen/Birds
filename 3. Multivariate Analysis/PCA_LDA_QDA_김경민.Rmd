@@ -1,0 +1,380 @@
+---
+title: "PCA"
+output:
+  word_document: default
+  pdf_document:
+    latex_engin: xelatex
+mainfont: NanumGothic
+---
+
+# PCA
+
+## 0. 라이브러리 및 데이터 불러오기
+
+```{r}
+library(ggplot2)
+library(CCA)
+
+df = read.csv("./bird_preprocessed.csv")
+head(df)
+```
+
+## 1. type이 P인 데이터에 대해 R을 이용한 PCA 진행
+
+```{r, fig.width=8, fig.height=8}
+df.P = df[df$type=="P",-11] 
+dim(df.P)
+
+R = cor(df.P)
+eigen(R)$values 
+
+PC.result.P = princomp(df.P, cor=TRUE)
+summary(PC.result.P)
+PC.result.P$loadings
+head(PC.result.P$scores)
+
+screeplot(PC.result.P, type="lines")
+screeplot(PC.result.P)
+
+ggplot(data.frame(PC.result.P$scores), aes(Comp.1,Comp.2))+
+  geom_point()+
+  geom_text(aes(label=rownames(df.P)))
+biplot(PC.result.P)
+```
+
+
+## 2. type이 R인 데이터에 대해 R을 이용한 PCA 진행
+
+```{r, fig.width=8, fig.height=8}
+df.R = df[df$type=="R",-11]
+dim(df.R)
+
+R = cor(df.R)
+eigen(R)$values
+
+PC.result.R = princomp(df.R, cor=TRUE)
+summary(PC.result.R)
+PC.result.R$loadings
+head(PC.result.R$scores)
+
+screeplot(PC.result.R, type="lines")
+screeplot(PC.result.R)
+
+ggplot(data.frame(PC.result.R$scores), aes(Comp.1,Comp.2))+
+  geom_point()+
+  geom_text(aes(label=rownames(df.R)))
+biplot(PC.result.R)
+```
+
+
+## 3. type이 SO인 데이터에 대해 R을 이용한 PCA 진행
+
+```{r, fig.width=8, fig.height=8}
+df.SO = df[df$type=="SO",-11]
+dim(df.SO)
+
+R = cor(df.SO)
+eigen(R)$values
+
+PC.result.SO = princomp(df.SO, cor=TRUE)
+summary(PC.result.SO)
+PC.result.SO$loadings
+head(PC.result.SO$scores)
+
+screeplot(PC.result.SO, type="lines")
+screeplot(PC.result.SO)
+
+ggplot(data.frame(PC.result.SO$scores), aes(Comp.1,Comp.2))+
+  geom_point()+
+  geom_text(aes(label=rownames(df.SO)))
+biplot(PC.result.SO)
+```
+
+
+## 4. type이 SW인 데이터에 대해 R을 이용한 PCA 진행
+
+```{r, fig.width=8, fig.height=8}
+df.SW = df[df$type=="SW",-11]
+dim(df.SW)
+
+R = cor(df.SW)
+eigen(R)$values
+
+PC.result.SW = princomp(df.SW, cor=TRUE)
+summary(PC.result.SW)
+PC.result.SW$loadings
+head(PC.result.SW$scores)
+
+screeplot(PC.result.SW, type="lines")
+screeplot(PC.result.SW)
+
+ggplot(data.frame(PC.result.SW$scores), aes(Comp.1,Comp.2))+
+  geom_point()+
+  geom_text(aes(label=rownames(df.SW)))
+biplot(PC.result.SW)
+
+ggplot(data.frame(PC.result.SW$scores), aes(Comp.1,Comp.3))+
+  geom_point()+
+  geom_text(aes(label=rownames(df.SW)))
+```
+
+
+## 5. type이 W인 데이터에 대해 R을 이용한 PCA 진행
+
+```{r, fig.width=8, fig.height=8}
+df.W = df[df$type=="W",-11]
+dim(df.W)
+
+R = cor(df.W)
+eigen(R)$values
+
+PC.result.W = princomp(df.W, cor=TRUE)
+summary(PC.result.W)
+PC.result.W$loadings
+head(PC.result.W$scores)
+
+screeplot(PC.result.W, type="lines")
+screeplot(PC.result.W)
+
+ggplot(data.frame(PC.result.W$scores), aes(Comp.1,Comp.2))+
+  geom_point()+
+  geom_text(aes(label=rownames(df.W)))
+biplot(PC.result.W)
+
+ggplot(data.frame(PC.result.W$scores), aes(Comp.1,Comp.3))+
+  geom_point()+
+  geom_text(aes(label=rownames(df.W)))
+```
+
+
+## 6. 전체 데이터에 대해 R을 이용한 PCA 진행
+
+```{r, fig.width=8, fig.height=8}
+PC.result = princomp(df[,-11], cor=TRUE)
+
+R = cor(df[,-11])
+eigen(R)$values
+
+summary(PC.result)
+PC.result$loadings
+head(PC.result$scores)
+
+screeplot(PC.result, type="lines")
+screeplot(PC.result)
+
+ggplot(data.frame(PC.result$scores), aes(Comp.1,Comp.2,color=df[,11]))+geom_point()
+biplot(PC.result)
+```
+
+# LDA
+
+## 1. 2개의 주성분을 이용한 LDA
+
+```{r}
+df.pca = data.frame(PC1=PC.result$scores[,1], PC2=PC.result$scores[,2], type=df$type)
+head(df.pca)
+
+ld.pca = lda(type~PC1+PC2, data=df.pca)
+ld.pca
+
+pca.pred.c = predict(ld.pca)$class
+table(df.pca$type, pca.pred.c)
+(error.rate = mean(df.pca$type!=pca.pred.c))
+(correct.rate = mean(df.pca$type==pca.pred.c))
+
+df.pca$pred = pca.pred.c
+df.pca$miss = (df.pca$type!=pca.pred.c)
+plot.data = data.frame(df.pca, predict(ld.pca)$x)
+
+ggplot(df.pca,aes(PC1,PC2))+
+  geom_point(data=df.pca[df.pca$miss,], col="red", size=3)+
+  geom_point(aes(color=factor(type)))
+```
+
+
+## 2. 원본 데이터 LDA 
+
+```{r}
+ld.df = lda(type~., data=df[1:11])
+ld.df
+
+df.pred.c = predict(ld.df)$class
+table(df$type, df.pred.c)
+(error.rate = mean(df$type!=df.pred.c))
+(correct.rate = mean(df$type==df.pred.c))
+
+df$pred = df.pred.c
+df$miss = (df$type!=df.pred.c)
+plot.data = data.frame(df, predict(ld.df)$x)
+
+ggplot(df,aes(huml,tarl))+
+  geom_point(data=df[df$miss,], col="red", size=3)+
+    geom_point(aes(color=factor(type)))
+
+ggplot(plot.data,aes(LD1,LD2))+
+  geom_point(data=plot.data[plot.data$miss,], col='red', size=3)+
+  geom_point(aes(color=factor(type)))
+```
+
+
+## 3. train/test split 성능 확인 
+
+```{r}
+p = 0.7
+n = nrow(df)
+
+set.seed(2024)
+train.ind = sample(n, as.integer(n*p))
+df_train = df[train.ind,1:11]
+df_test = df[-train.ind,1:11]
+
+ld.result = lda(type~., data=df_train)
+ld.result
+
+### train error
+train.pred.c = predict(ld.result)$class
+table(df_train$type, train.pred.c)
+(error.rate = mean(df_train$type!=train.pred.c))
+(correct.rate = mean(df_train$type==train.pred.c))
+
+df_train$pred = train.pred.c
+df_train$miss = (df_train$type!=train.pred.c)
+plot.data = data.frame(df_train, predict(ld.result)$x)
+
+ggplot(df_train,aes(huml,tarl))+
+  geom_point(data=df_train[df_train$miss,], col="red", size=3)+
+  geom_point(aes(color=factor(type)))
+
+ggplot(plot.data, aes(LD1, LD2))+
+  geom_point(data=plot.data[plot.data$miss,],col='red', size=3)+
+  geom_point(aes(color=factor(type)))
+
+### test error
+test.pred.c = predict(ld.result, newdata=df_test[,-11])$class
+table(df_test$type, test.pred.c)
+(error.rate = mean(df_test$type!=test.pred.c))
+(correct.rate = mean(df_test$type==test.pred.c))
+
+df_test$pred = test.pred.c
+df_test$miss = (df_test$type!=test.pred.c)
+
+ggplot(df_test,aes(huml,tarl))+
+  geom_point(data=df_test[df_test$miss,], col="red", size=3)+
+  geom_point(aes(color=factor(type)))
+
+plot.data = data.frame(df_test, predict(ld.result, newdata=df_test[,-11])$x)
+ggplot(plot.data, aes(LD1, LD2))+
+  geom_point(data=plot.data[plot.data$miss,],col='red', size=3)+
+  geom_point(aes(color=factor(type)))
+```
+
+
+## 4. train/test split(stratify=y) 성능 확인
+
+```{r}
+library(dplyr)
+p = 0.7
+
+set.seed(2024)
+df_train <- df[1:11] %>%
+  group_by(type) %>%
+  sample_frac(p)
+df_test <- anti_join(df[1:11], df_train)
+
+table(df_train$type)/nrow(df_train)
+table(df_test$type)/nrow(df_test)
+table(df$type)/nrow(df)
+
+ld.result = lda(type~., data=df_train[1:11])
+ld.result
+
+### train error
+train.pred.c = predict(ld.result)$class
+table(df_train$type, train.pred.c)
+(error.rate = mean(df_train$type!=train.pred.c))
+(correct.rate = mean(df_train$type==train.pred.c))
+
+df_train$pred = train.pred.c
+df_train$miss = (df_train$type!=train.pred.c)
+plot.data = data.frame(df_train, predict(ld.result)$x)
+
+ggplot(df_train,aes(huml,tarl))+
+  geom_point(data=df_train[df_train$miss,], col="red", size=3)+
+  geom_point(aes(color=factor(type)))
+
+ggplot(plot.data, aes(LD1, LD2))+
+  geom_point(data=plot.data[plot.data$miss,],col='red', size=3)+
+  geom_point(aes(color=factor(type)))
+
+### test error
+test.pred.c = predict(ld.result, newdata=df_test[,-11])$class
+table(df_test$type, test.pred.c)
+(error.rate = mean(df_test$type!=test.pred.c))
+(correct.rate = mean(df_test$type==test.pred.c))
+
+df_test$pred = test.pred.c
+df_test$miss = (df_test$type!=test.pred.c)
+
+ggplot(df_test,aes(huml,tarl))+
+  geom_point(data=df_test[df_test$miss,], col="red", size=3)+
+  geom_point(aes(color=factor(type)))
+
+plot.data = data.frame(df_test, predict(ld.result, newdata=df_test[,-11])$x)
+ggplot(plot.data, aes(LD1, LD2))+
+  geom_point(data=plot.data[plot.data$miss,],col='red', size=3)+
+  geom_point(aes(color=factor(type)))
+```
+
+
+## 5. QDA (추가)
+
+### 전체 데이터
+
+```{r}
+qda1 = qda(type~., data=df[1:11])
+qda1
+
+qda1.pred.c = predict(qda1, df)$class
+table(df$type, qda1.pred.c)
+
+(error.rate = mean(df$type!=qda1.pred.c))
+(correct.rate = mean(df$type==qda1.pred.c))
+```
+
+### train/test split
+
+```{r}
+p = 0.7
+n = nrow(df)
+
+set.seed(2024)
+train.ind = sample(n, as.integer(n*p))
+df_train = df[train.ind,1:11]
+df_test = df[-train.ind,1:11]
+
+# train data
+qda.train = qda(type~., data=df_train)
+qda.train
+
+qda.train.pred.c = predict(qda.train, df_train)$class
+table(df_train$type, qda.train.pred.c)
+
+(error.rate = mean(df_train$type!=qda.train.pred.c))
+(correct.rate = mean(df_train$type==qda.train.pred.c))
+
+# test data
+qda.test.pred.c = predict(qda.train, newdata=df_test[,-11])$class
+table(df_test$type, qda.test.pred.c)
+
+(error.rate = mean(df_test$type!=qda.test.pred.c))
+(correct.rate = mean(df_test$type==qda.test.pred.c))
+```
+
+
+
+
+
+
+
+
+
