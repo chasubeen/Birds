@@ -1,0 +1,201 @@
+---
+title: "Preprocessing"
+output: word_document
+---
+
+## **0. 데이터 확인**
+
+### **데이터 불러오기**
+
+```{r}
+bird <- read.csv("./data/bird.csv")
+```
+
+### **일부 데이터 확인하기**
+
+```{r}
+head(bird)
+```
+
+### **데이터 형태 확인**
+
+```{r}
+# 차원
+dim(bird)
+```
+
+```{r}
+# 데이터셋 구조 확인
+str(bird)
+```
+-   420개의 행, 12개의 변수로 구성되어 있다.
+    -   id 변수, 10개의 feature 변수, 1개의 target 변수
+    -   5개 뼈(위날개뼈, 자뼈, 넓적다리뼈, 정강발목뼈, 뒷발목뼈)에 대한 길이와 지름으로 구성됨
+
+### **id 삭제** 
+- id는 분석에 활용되지 않기에 삭제하기로 결정하였다.
+
+```{r}
+bird <- bird[,-1]
+```
+
+### **간단한 데이터 정보 확인**
+
+```{r}
+summary(bird[,-11])
+```
+-   일부 결측치가 존재함을 확인할 수 있다.
+-   대부분 오른쪽 꼬리가 긴(왼쪽으로 치우친), 왜곡된 분포를 지님을 확인할 수 있다.
+
+## **1. 결측치 처리**
+
+### **결측치 확인**
+
+```{r}
+# 전체 데이터에서 결측치가 몇 건인지(행 개수) 확인
+sum(is.na(bird))
+```
+
+```{r}
+# 각 변수별로 결측치가 얼마나 존재하는지 확인
+colSums(is.na(bird))
+```
+-   총합: 15
+-   즉, 결측치가 발생한 데이터의 경우 모두 하나의 변수에 대해서만 결측이다.
+
+### **결측치 처리**
+- type(어떤 생태학적 특성을 가지는 조류인지)에 대한 정보는 모든 데이터에 대해 제공된 상황이다.
+- 따라서, 각 type의 기술통계량을 활용하여 결측치를 처리하기로 결정하였다.
+  - 대부분의 변수가 왜곡된 분포를 보이고 있기에, 최빈값으로 결측치를 보간하기로 결정하였다.
+  
+```{r}
+# 최빈값을 구하는 함수
+mode <- function(x) {
+  uniqx <- unique(x)
+  uniqx[which.max(tabulate(match(x, uniqx)))]
+}
+```
+
+```{r}
+# type별로 분리
+bird_grouped <- split(bird, bird$type)
+```
+
+```{r}
+# type별로 데이터프레임 그룹화하여 결측치를 최빈값으로 보간
+for (type in names(bird_grouped)) {
+  group_data <- bird_grouped[[type]]
+  for (col in names(group_data)[!names(group_data) %in% "type"]) {
+    mode_value <- mode(group_data[[col]])
+    group_data[[col]][is.na(group_data[[col]])] <- mode_value
+  }
+  bird[bird$type == type, ] <- group_data
+}
+```
+
+```{r}
+sum(is.na(bird))
+```
+- 결측치가 제대로 처리되었다.
+
+## **2. 이상치 처리**
+
+### **이상치 탐지 함수**
+```{r}
+### 이상치가 있는 데이터의 인덱스를 반환
+
+get_outlier_indices <- function(df_col, weight = 1.5) {
+  q <- quantile(df_col, c(0.25, 0.75))
+  iqr <- q[2] - q[1]
+  
+  lowest_val <- q[1] - iqr * weight
+  highest_val <- q[2] + iqr * weight
+  
+  outlier_indices <- which(df_col < lowest_val | df_col > highest_val)
+  
+  return(outlier_indices)
+}
+```
+
+### **이상치 탐지**
+
+```{r}
+# type별로 분리
+# 위에서 결측치 보간을 수행하였기에 보간된 데이터로 다시 분할해 준다.
+
+bird_grouped <- split(bird, bird$type)
+```
+
+```{r}
+# 각 type별로 이상치 비율 저장할 리스트 생성
+outlier_ratios <- list()
+# 이상치 index를 저장할 리스트 생성
+outlier_idx <- list()
+```
+
+```{r}
+# 각 type별로 이상치 탐지 및 제거
+for (type in names(bird_grouped)) {
+  group_data <- bird_grouped[[type]]
+  
+  # 각 변수에 대해 이상치 탐지
+  outliers <- list()
+  for (col in names(group_data)) {
+    if (col != "type") {
+      outliers[[col]] <- get_outlier_indices(group_data[[col]], weight = 3)
+    }
+  }
+  
+  # 이상치 인덱스를 하나의 리스트에 모음
+  outlier_idx[[type]] <- unique(unlist(outliers))
+  
+  # 이상치 비율 계산
+  total_rows <- nrow(group_data)
+  total_outliers <- length(outlier_idx[[type]])
+  outlier_ratio <- total_outliers / total_rows
+  outlier_ratios[[type]] <- outlier_ratio
+  
+  cat("Type:", type, "- 이상치 비율:", outlier_ratio, "\n")
+}
+```
+- 이상치 탐지 시, weight를 3으로 설정하였다.
+- 확인 결과, 대부분 group에서 이상치는 거의 존재하지 않는 것을 확인할 수 있다.
+  - Type T의 경우 해당하는 데이터의 건수 자체가 적기에 이상치 비율이 높게 측정되었다고 볼 수 있다.
+
+### **이상치 제거**
+- 대부분은 이상치의 비율이 낮기에, 제거하면 될 것 같다고 판단됨
+- 그러나, bird_type == T의 경우
+  - 데이터 건수도 많은 와중에 이상치도 많음
+  - 유의미한 데이터 분석에 방해가 될 것이라 생각
+> 해당 범주 삭제?
+
+(일단 함수와 처리 코드는 작성해 두었습니다. 실행은 x)
+```{r eval=F}
+# 이상치 데이터의 인덱스
+all_outliers <- unique(unlist(outlier_idx))
+
+# 이상치 제거
+bird <- bird[-all_outliers, ]
+```
+
+## **3. 변수 스케일링**
+- 주성분분석, 군집분석 등 거리에 대한 기여도가 분석에 영향을 주는 방법들의 경우 분석을 수행하기 전에 scaling을 진행하여아 한다.
+  - `scale()` 함수를 이용해 평균을 0, 분산을 1로 scaling 해줄 수 있다.
+- 그러나, 스케일링을 하면 결과 해석이 어려워진다는 단점이 있다.
+  - 따라서, 전처리 시 원본 데이터의 scale을 유지하고, scaling이 필요한 다변량 분석 방법에 한해서만 분석 직전에 스케일링을 진행하는 편이 적합하다고 판단하였다.
+  
+(아래 코드는 현재 실행하지 않았습니다.)
+```{r eval=F}
+# 데이터프레임에서 숫자형 열 선택
+numeric_cols <- sapply(bird, is.numeric)
+
+# 숫자형 열만 선택하여 스케일링 수행
+bird[numeric_cols] <- scale(bird[numeric_cols])
+
+# 결과 확인
+head(bird)
+```
+
+## **4. 범주형 변수 처리**
+- target 변수에 해당하는 type은 현재 범주형 변수이다.
+- 그러나, R에서 다변량 분석을 수행하는 경우 따로 범주형 변수를 처리할 필요는 없어 보이기에 하지 않기로 결정하였다.
