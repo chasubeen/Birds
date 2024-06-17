@@ -33,8 +33,8 @@
 ## **1. 참여자**
 |**팀원 1**|**팀원 2**|**팀원 3**|**팀원 4**|
 |:----------:|:----------:|:----------:|:----------:|
-|<img src="" width = 100 height = 100>|<img src = "" width = 100 height = 100>|<img src = "" width = 100 height = 100>|<img src = "https://github.com/chasubeen/Birds/assets/98953721/897c44b7-c0d5-46ba-98d4-fb9e5b39a83e" width = 100 height = 100>|
-|[김경민]()|[이도경]()|[장단]()|[차수빈](https://github.com/chasubeen)|
+|<img src="https://github.com/chasubeen/Birds/assets/98953721/d0c36724-2af3-44f6-be26-b689db0cd52f" width = 100 height = 100>|<img src = "https://github.com/chasubeen/Birds/assets/98953721/d3770423-221a-4e58-9a62-fe0ac32731ef" width = 100 height = 100>|<img src = "" width = 100 height = 100>|<img src = "https://github.com/chasubeen/Birds/assets/98953721/897c44b7-c0d5-46ba-98d4-fb9e5b39a83e" width = 100 height = 100>|
+|[김경민](https://github.com/kkyung0131)|[이도경](https://github.com/dklee1118)|[장단]()|[차수빈](https://github.com/chasubeen)|
 
 ## **2. 진행 과정**
 - **기간**: 2024.05 ~ 2024.06
