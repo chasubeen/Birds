@@ -1,0 +1,223 @@
+---
+title: "bird-preprocessed-EDA"
+output:
+  pdf_document: 
+    latex_engin : xelatex
+mainfont : NanumGothic
+---
+
+### 0. 라이브러리 및 데이터 불러오기
+
+```{r}
+library(ggplot2)
+library(lattice)
+library(ggcorrplot)
+
+df = read.csv("C:/Users/lgpc/Desktop/다변량/Project/bird_preprocessed.csv")
+```
+
+
+### 1. 데이터 구조 확인
+
+```{r}
+head(df)
+tail(df)
+dim(df) 
+summary(df)
+```
+
+
+### 2. 'type'의 분포 확인 : 막대그래프
+
+```{r}
+ggplot(df, aes(type))+
+  geom_bar(fill='#00462A',color='black',alpha=0.5)+
+  geom_text(stat='count', aes(label=..count..), vjust=-0.5) +  
+  ggtitle("Distribution of type")
+```
+
+### 3. 독립변수들의 분포 확인 : density 
+
+#### 3-1. Length의 분포 확인
+
+```{r}
+library(RColorBrewer)
+colors <- brewer.pal(5, "Set2")
+
+ggplot(df)+
+  geom_density(aes(x=huml, fill="huml", color="huml"), alpha=0.2) +
+  geom_density(aes(x=ulnal, fill="ulnal", color="ulnal"), alpha=0.2) +
+  geom_density(aes(x=feml, fill="feml", color="feml"), alpha=0.2) +
+  geom_density(aes(x=tibl, fill="tibl", color="tibl"), alpha=0.2) +
+  geom_density(aes(x=tarl, fill="tarl", color="tarl"), alpha=0.2) +
+  scale_fill_manual(
+    name = "Length of bones",
+    values = c("huml"=colors[1], "ulnal"=colors[2],
+               "feml"=colors[3], "tibl"=colors[4], "tarl"=colors[5])) +
+  scale_color_manual(
+    name = "Length of bones",
+    values = c("huml"=colors[1], "ulnal"=colors[2], 
+               "feml"=colors[3], "tibl"=colors[4], "tarl"=colors[5])) +
+  theme_minimal() +
+  labs(x = "Length", y = "Density")
+```
+
+#### 3-2. Diameter의 분포 확인
+
+```{r}
+library(RColorBrewer)
+colors <- brewer.pal(5, "Set2")
+
+ggplot(df)+
+  geom_density(aes(x=humw, fill="humw", color="humw"), alpha=0.2) +
+  geom_density(aes(x=ulnaw, fill="ulnaw", color="ulnaw"), alpha=0.2) +
+  geom_density(aes(x=femw, fill="femw", color="femw"), alpha=0.2) +
+  geom_density(aes(x=tibw, fill="tibw", color="tibw"), alpha=0.2) +
+  geom_density(aes(x=tarw, fill="tarw", color="tarw"), alpha=0.2) +
+  scale_fill_manual(
+    name = "Diameter of bones",
+    values = c("humw"=colors[1], "ulnaw"=colors[2],
+               "femw"=colors[3], "tibw"=colors[4], "tarw"=colors[5])) +
+  scale_color_manual(
+    name = "Diameter of bones",
+    values = c("humw"=colors[1], "ulnaw"=colors[2], 
+               "femw"=colors[3], "tibw"=colors[4], "tarw"=colors[5])) +
+  theme_minimal() +
+  labs(x = "Diameter", y = "Density")
+```
+
+
+
+
+### 4-1. 'type'별 독립변수들의 분포 : Boxplot
+
+```{r, fig.width=10, fig.height=10}
+# install.packages("patchwork")
+library(rlang)
+library(patchwork)
+
+cols = colnames(df[-11])
+
+for (col in cols) {
+  plot_title <- paste("Distribution of", col, "by Type")
+  p <- ggplot(df, aes(x=!!rlang::sym(col), y=reorder(type, !!rlang::sym(col), FUN=median))) +
+    geom_boxplot(fill="#00462A", alpha=0.5) +
+    geom_point(alpha=0.3, size=2) +
+    labs(title=plot_title, x=col, y="type")
+}
+
+# Combine all plots into one screen
+combined_plot <- wrap_plots(plot_list, ncol=3, nrow=4)
+combined_plot
+```
+
+### 4-2. 'type'별 독립변수들의 분포 : Density
+
+```{r}
+cols = colnames(df[-11])
+
+for (col in cols) {
+  plot_title <- paste("Distribution of", col, "by Type")
+  print(ggplot(df, aes(x=!!rlang::sym(col), fill=type, color=type)) +
+          geom_density(alpha=0.3) +
+          theme_minimal() +
+          labs(title=plot_title, x=col, y="type"))
+}
+```
+
+
+### 5. 독립변수들 간 correlation 확인
+
+```{r}
+corr <- cor(df[-11])
+ggcorrplot(corr, lab=T, digits=2)
+
+
+library(reshape2)
+corr_df <- melt(corr)
+
+ggplot(corr_df, aes(Var2, Var1, fill = value)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(value, 2)), color = "black") + 
+  scale_fill_gradient(low = "white", high = "#00462A", limits = c(0.5, 1)) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  coord_fixed()
+```
+
+
+### 6. length vs diameter
+
+```{r, fig.width=8, fig.height=8}
+
+plot1 <- ggplot(df, aes(x=huml, y=humw)) + 
+  geom_point(aes(color = type)) +
+  geom_smooth(method="lm") + 
+  xlab("huml") + 
+  ylab("humw") + 
+  labs(colour="type") +
+  ggtitle("huml vs humw")
+
+plot2 <- ggplot(df, aes(x=ulnal, y=ulnaw)) + 
+  geom_point(aes(color = type)) +
+  geom_smooth(method="lm") + 
+  xlab("ulnal") + 
+  ylab("ulnaw") + 
+  labs(colour="type") +
+  ggtitle("ulnal vs ulnaw")
+
+plot3 <- ggplot(df, aes(x=feml, y=femw)) + 
+  geom_point(aes(color = type)) +
+  geom_smooth(method="lm") + 
+  xlab("feml") + 
+  ylab("femw") + 
+  labs(colour="type") +
+  ggtitle("feml vs femw")
+
+plot4 <- ggplot(df, aes(x=tibl, y=tibw)) + 
+  geom_point(aes(color = type)) +
+  geom_smooth(method="lm") + 
+  xlab("tibl") + 
+  ylab("tibw") + 
+  labs(colour="type") +
+  ggtitle("tibl vs tibw")
+
+plot5 <- ggplot(df, aes(x=tarl, y=tarw)) + 
+  geom_point(aes(color = type)) +
+  geom_smooth(method="lm") + 
+  xlab("tarl") + 
+  ylab("tarw") + 
+  labs(colour="type") +
+  ggtitle("tarl vs tarw")
+
+combined_plot <- wrap_plots(plot1, plot2, plot3, plot4, plot5, ncol = 2)
+combined_plot
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
