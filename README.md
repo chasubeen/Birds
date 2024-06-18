@@ -33,8 +33,8 @@
 ## **1. 참여자**
 |**팀원 1**|**팀원 2**|**팀원 3**|**팀원 4**|
 |:----------:|:----------:|:----------:|:----------:|
-|<img src="https://github.com/chasubeen/Birds/assets/98953721/d0c36724-2af3-44f6-be26-b689db0cd52f" width = 100 height = 100>|<img src = "https://github.com/chasubeen/Birds/assets/98953721/d3770423-221a-4e58-9a62-fe0ac32731ef" width = 100 height = 100>|<img src = "" width = 100 height = 100>|<img src = "https://github.com/chasubeen/Birds/assets/98953721/897c44b7-c0d5-46ba-98d4-fb9e5b39a83e" width = 100 height = 100>|
-|[김경민](https://github.com/kkyung0131)|[이도경](https://github.com/dklee1118)|[장단]()|[차수빈](https://github.com/chasubeen)|
+|<img src="https://github.com/chasubeen/Birds/assets/98953721/d0c36724-2af3-44f6-be26-b689db0cd52f" width = 100 height = 100>|<img src = "https://github.com/chasubeen/Birds/assets/98953721/d3770423-221a-4e58-9a62-fe0ac32731ef" width = 100 height = 100>|<img src = "https://github.com/chasubeen/Birds/assets/98953721/2daf399f-b08d-43e5-a014-583afde5057c" width = 100 height = 100>|<img src = "https://github.com/chasubeen/Birds/assets/98953721/897c44b7-c0d5-46ba-98d4-fb9e5b39a83e" width = 100 height = 100>|
+|[김경민](https://github.com/kkyung0131)|[이도경](https://github.com/dklee1118)|[장단](https://github.com/nazzdsept)|[차수빈](https://github.com/chasubeen)|
 
 ## **2. 진행 과정**
 - **기간**: 2024.05 ~ 2024.06
@@ -46,10 +46,10 @@
   
 |**이름**|**역할**|
 |:-----:|:----------:|
-|김경민|데이터 전처리, 탐색적 데이터 분석(EDA), 정준상관분석, 주성분분석, 판별분석(LDA/QDA), 발표자료 완성|
-|이도경|데이터 전처리, 탐색적 데이터 분석(EDA), 정준상관분석, 보고서 완성|
-|장단|데이터 전처리, 탐색적 데이터 분석(EDA), 군집분석, 주성분분석, 발표자료 완성|
-|차수빈|데이터 전처리, 탐색적 데이터 분석(EDA), 군집분석, 보고서 완성|
+|김경민|데이터 전처리 <br> 탐색적 데이터 분석(EDA) <br> 정준상관분석 <br> 주성분분석 <br> 판별분석(LDA/QDA) <br> 발표자료 완성|
+|이도경|데이터 전처리 <br> 탐색적 데이터 분석(EDA) <br> 정준상관분석 <br> 보고서 완성|
+|장단|데이터 전처리 <br> 탐색적 데이터 분석(EDA) <br> 군집분석 <br> 주성분분석 <br> 발표자료 완성|
+|차수빈|데이터 전처리 <br> 탐색적 데이터 분석(EDA) <br> 군집분석 <br> 보고서 완성|
 
 ---
 ## **회고**
