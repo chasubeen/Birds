@@ -1,0 +1,240 @@
+---
+title: "bird_분석"
+author: "DKLee"
+date: "2024-05-19"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+## 날개 뼈와 다리 뼈의 관계 파악 - 정준상관분석(CCA)
+
+
+```{r}
+# 데이터 불러오기
+bird = read.csv("C:/Rstudy/bird_preprocessed.csv")
+
+# X : 새의 날개 뼈, Y : 새의 다리 뼈
+X = bird[,1:4]
+Y = bird[,5:10]
+
+```
+
+- X : 4차원, 새의 날개 뼈 집단
+- Y : 6차원, 새의 다리 뼈 집단
+
+
+
+```{r}
+library(CCA)
+
+# X와 Y 표준화
+Zx = scale(X)
+Zy = scale(Y)
+
+mean(Zx); diag(var(Zx))
+
+```
+
+```{r}
+mean(Zy); diag(var(Zy))
+```
+
+
+```{r}
+
+bird_cc = cc(Zx,Zy)
+
+# 정준상관계수
+bird_cc$cor
+```
+
+- 제 1 정준상관계수는 0.9600571로, 날개 뼈 집단과 다리 뼈 집단이 상당히 강한 상관관계를 가지고 있다.
+
+- 제 2 정준상관계수는 0.7705648,  날개 뼈 집단과 다리 뼈 집단이 중간정도의 상관관계를 가지고 있다.
+
+- 제 3 정준상관계수는 0.4911247로, 날개 뼈 집단과 다리 뼈 집단이 약간의 상관관계를 가지고 있다.
+
+- 제 4 정준상관계수는 0.1274248로, 날개 뼈 집단과 다리 뼈 집단이 약한 상관관계를 가지고 있다.
+
+
+
+
+
+
+```{r}
+# U의 정준계수
+bird_cc$xcoef
+```
+
+- U1 = - 0.14x상완근길이 - 1.0x상완근지름 + 0.24x자뼈길이 - 0.14x자뼈지름
+
+- U2 = - 5.03x상완근길이 + 1.39x상완근지름 + 3.7x자뼈길이 - 0.07x자뼈지름
+
+- U3 = - 0.26x상완근길이 - 1.58x상완근지름 + 2.60x자뼈길이 - 0.51x자뼈지름
+
+- U4 = - 0.28x상완근길이 - 3.81x상완근지름 + 0.58x자뼈길이 - 3.64x자뼈지름
+
+- 첫 번째 정준변수 U1에서 상완근지름(humw)의 기여도가 대부분을 차지한다.
+
+- 두 번째 정준변수 U2에 상완근길이(huml)와 자뼈길이(ulnal)이 크게 기여한다.
+
+
+```{r}
+# V의 정준계수
+bird_cc$ycoef
+```
+
+- V1 = 0.04x넙다리뼈길이 - 0.79x넙다리뼈지름 - 0.70x경골길이 + 0.20x경골지름 + 0.48x족근길이 - 0.20x족근지름
+
+- V2 = 0.30x넙다리뼈길이 + 2.55x넙다리뼈지름 - 1.06x경골길이 - 2.64x경골지름 + 0.48x족근길이 + 0.36x족근지름
+
+- V3 = - 1.05x넙다리뼈길이 + 3.07x넙다리뼈지름 - 1.03x경골길이 - 0.30x경골지름 + 1.09x족근길이 - 1.71x족근지름
+
+- V4 = - 2.83x넙다리뼈길이 + 2.41x넙다리뼈지름 + 1.77x경골길이 - 3.43x경골지름 + 0.97x족근길이 + 1.36x족근지름
+
+- 첫 번째 정준변수 V1에서 넙다리뼈지름(femw)과 경골길이(tibl)가 크게 기여한다.
+
+- 두 번째 정준변수 V2에서 넙다리뼈지름(femw)과 경골지름(tibw)의 기여도가 크다.
+
+
+
+
+```{r}
+# X와 U의 correlation
+colnames(bird_cc$scores$corr.X.xscores) = c("U1","U2",'U3','U4')
+bird_cc$scores$corr.X.xscores
+```
+
+```{r}
+# X와 V의 correlation
+colnames(bird_cc$scores$corr.X.yscores) = c("V1","V2",'V3','V4')
+bird_cc$scores$corr.X.yscores
+```
+
+```{r}
+# Y와 U의 correlation
+colnames(bird_cc$scores$corr.Y.xscores) = c("U1","U2",'U3','U4')
+bird_cc$scores$corr.Y.xscores
+```
+
+```{r}
+# Y와 V의 correlation
+colnames(bird_cc$scores$corr.Y.yscores) = c("V1","V2",'V3','V4')
+bird_cc$scores$corr.Y.yscores
+```
+
+- X와 Y 모두 (U1, V1)쌍과의 상관관계가 훨씬 크다. -> (U1, V1)쌍만 사용해도 무방하다.
+
+- X와 Y 모두 (U1, V1)쌍과 강한 음의 상관관계를 가지므로 날개뼈의 전체적인 크기와 다리뼈의 전체적인 크기가 강한 양의 상관관계를 가진다는 것을 알 수 있다.
+
+
+
+
+
+```{r, fig.width=8, fig.height=8}
+library(ggplot2)
+library(gridExtra)
+# U1과 V1의 correlation을 보기 위한 산점도
+U1 = bird_cc$scores$xscores[,1]
+V1 = bird_cc$scores$yscores[,1]
+ggplot(data.frame(U1, V1), aes(U1, V1)) + 
+  geom_point() + 
+  labs(title = "U1 vs V1")
+```
+```{r, fig.width=8, fig.height=8}
+# U2과 V2의 correlation을 보기 위한 산점도
+U2 = bird_cc$scores$xscores[,2]
+V2 = bird_cc$scores$yscores[,2]
+ggplot(data.frame(U2, V2), aes(U2, V2)) + 
+  geom_point() + 
+  labs(title = "U2 vs V2")
+```
+
+
+
+- (U1과 V1)의 선형관계가 뚜렷하여 correlation이 높은 것을 알 수 있다.
+
+- (U2와 V2)는 (U1과 V1)의 correlation보다는 작지만, 중간정도의 correlation을 보인다.
+
+- (U3와 V3), (U4와 V4)는 선형관계가 보이지 않고 낮은 correlation을 보인다.
+
+
+```{r, fig.width=8, fig.height=8}
+plt.cc(bird_cc, type="v", var.label=TRUE)
+```
+
+```{r, fig.width=8, fig.height=8}
+plt.cc(bird_cc, type="i", var.label=TRUE)
+```
+
+
+
+
+
+
+```{r}
+library(CCA)
+
+# 상관성 존재 여부 검정
+
+n = dim(X)[1]
+p = dim(X)[2]
+q = dim(Y)[2]
+rho = bird_cc$cor
+alpha = 0.05
+Lambda = prod(1-rho**2)
+Lambda
+
+chi_t = -(n-(p+q+3)/2)*log(Lambda)
+chi = qchisq(1-alpha, p*q)
+p_value = 1-pchisq(chi_t, p*q)
+c(chi_t, chi, p_value)
+
+
+chi_t > chi
+```
+
+- H0 기각 -> 변수들 간에 상관성이 존재하여 정준상관분석이 유의하다.
+
+
+
+
+```{r}
+# 변수들간의 상관관계 확인
+mtc = matcor(X,Y)
+img.matcor(mtc,type=2)
+```
+
+- 변수들간의 상관성이 매우 높다. 다중공선성으로 인해 정준상관분석 결과가 왜곡되었거나 상관성 검정 결과와는 다르게 이 분석이 유의하지 않을 가능성이 존재한다. 
+
+
+
+
+
+
+## 해석 및 의미
+
+- 이 분석은 날개 뼈의 길이와 지름(X)이 다리 뼈의 길이와 지름(Y)의 상관관계를 보여준다.
+
+- 분석 결과 날개 뼈의 전체적인 크기가 커질수록 다리 뼈의 전체적인 크기도 커지는 것을 확인할 수 있었다. 특히 상완근지름(humw)과 넙다리뼈지름(femw), 경골길이(tibl)가 중요한 역할을 한다.
+
+- 이 결과를 통해 새의 생물학적 구조에서 날개 뼈와 다리 뼈의 구조가 서로 영향을 미치는 중요한 요인임을 알 수 있다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
