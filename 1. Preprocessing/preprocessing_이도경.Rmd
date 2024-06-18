@@ -1,0 +1,127 @@
+---
+title: "bird_preprocessing"
+author: "DKLee"
+date: "2024-05-14"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# 데이터 불러오기
+bird = read.csv("C:/Rstudy/bird.csv")
+head(bird)
+
+summary(bird)
+```
+
+```{r}
+# 데이터셋을 X와 Y로 분리
+X = bird[,2:11]
+Y = bird[,12]
+```
+
+
+
+
+## 결측치 확인 및 보완
+
+```{r}
+# 결측치 개수 확인
+colSums(is.na(X)) 
+```
+
+```{r}
+library(VIM)
+
+# KNN함수를 통해 결측치 대체
+X_new_1 = kNN(X, k = 5) 
+
+# KNN 함수를 통해 만들어진 정보 외 보완된 데이터만 선택
+X_new_1 = X_new_1[,1:10]
+
+# 결측치가 제거되었는지 확인
+colSums(is.na(X_new_1)) 
+```
+
+- 방법1 : 데이터의 특성이 왜곡되는 것을 최소화하기 위해 KNN을 통해 결측치를 보완하였다. (참고 :  https://rdrr.io/cran/VIM/man/kNN.html)
+
+```{r}
+# 결측치가 있는 관측치를 제거하여 bird로 저장
+X_new_2 = na.omit(X) 
+
+# 결측치가 제거되었는지 확인. 총 7개의 관측치 제거.
+colSums(is.na(X_new_2)) 
+```
+
+
+- 방법2 : 결측치를 가진 데이터의 비중이 크지 않아(약 0.017%) 임의로 대체하지 않고 결측치가 존재하는 행을 제거하였다.
+
+
+
+
+## 이상치 확인
+
+```{r}
+a = boxplot(bird$huml)$stats[5,1]
+# 변수 huml의 관측치가 이상치인 id 확인
+filter(bird, huml > a) 
+```
+
+
+```{r}
+b = boxplot(bird$humw)$stats[5,1]
+# 변수 humw의 관측치가 이상치인 id 확인
+filter(bird, humw > b) 
+```
+
+
+```{r}
+c = boxplot(bird$ulnal)$stats[5,1]
+filter(bird, ulnal > c) # 변수 ulnal의 관측치가 이상치인 id 확인
+```
+
+
+
+
+
+## 주성분분석(PCA)을 이용한 데이터 차원 축소
+
+```{r}
+X.pc = princomp(X_new_1, cor = TRUE)
+X.pc$loadings
+
+X_lowdim = 0.317*X[,1] + 0.329*X[,2] + 0.308*X[,3] + 0.320*X[,4] + 0.320*X[,5] + 0.333*X[,6] + 0.315*X[,7] + 0.331*X[,8] + 0.281*X[,9] + 0.305*X[,10] 
+# Overall bone size를 새로운 하나의 변수로 설정.
+```
+
+
+- 10개의 변수가 overall bone size의 의미를 갖는 하나의 변수로 축소되었다.
+
+
+
+
+## 정준상관분석(CCA)를 위한 데이터분리
+
+```{r}
+X.len = X_new_1[,c(1,3,5,7,9)] # length 변수 집단
+X.wid = X_new_1[,c(2,4,6,8,10)] # width 변수 집단
+```
+
+- 정준상관분석을 위해 X의 변수들을 length 변수 집단과 width 변수 집단으로 나누었다.
+
+
+
+
+
+
+
+
+
+
+
+
+
