@@ -1,0 +1,143 @@
+---
+title: "bird_EDA"
+author: "DKLee"
+date: "2024-05-16"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+library(dplyr)
+library(tidyverse)
+library(GGally)
+library(corrplot)
+```
+
+
+# 데이터확인
+```{r}
+bird = read.csv("C:/Rstudy/bird_preprocessed.csv")
+colSums(is.na(bird))
+```
+
+- 결측치 없음 
+
+
+
+# 데이터구조
+```{r}
+str(bird)
+```
+
+- 10개의 연속형 변수와 1개의 범주형 변수로 이루어져 있음  
+
+
+
+# 범주형변수의 종류
+```{r}
+X = bird[,1:10]
+Y = bird[,11]
+table(Y)
+```
+
+*  
+
+
+# 막대그래프
+```{r}
+library(ggplot2)
+
+ggplot(bird, aes(x = Y)) +
+  geom_bar(fill = "darkgreen") +
+  labs(title = "새 종류의 분포", x = "새 종류", y = "수")
+
+```
+
+- SO(Singing birds)가 가장 많이 관측되었고, P(Scansorial Birds)가 가장 적게 관측됨  
+
+
+
+# 각 연속형변수의 분포
+```{r}
+library(dplyr)
+library(tidyverse)
+
+X %>%
+  gather(key = "variable", value = "value") %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(fill = "darkgreen") +
+  facet_wrap(~variable, scales = "free_x") +
+  labs(title = "연속형 변수의 분포", x = "값", y = "개수")
+```
+
+- 연속형 변수가 전부 왼쪽으로 치우친 분포를 보임  
+
+
+# bird type별 연속형 변수의 boxplot
+```{r}
+bird %>%
+  gather(key = "variable", value = "value", -type) %>%
+  ggplot(aes(x = type, y = value, fill = type)) +
+  geom_boxplot() +
+  facet_wrap(~ variable, scales = "free_y") +
+  theme_minimal() +
+  labs(title = "새 종류 별 연속형 변수의 Boxplots", x = "새 종류", y = "value")
+```
+
+- 대부분의 변수에서 비슷한 양상이 드러남. R, SW는 분포가 넓고 값이 큰 경향을 보이고 P, SO는 좁게 분포하고 값이 작은 경향을 보임.  
+
+
+# bird type 별 연속형변수의 pair plot
+```{r}
+library(GGally)
+
+ggpairs(bird, aes(color = type), columns = 1:4) + 
+  theme_minimal() +
+  labs(title = "연속변수의 Pair Plots")
+```
+
+- 변수들 간의 상관성이 매우 높음. X의 값에 따라 bird type을 쉽게 구분할 수 있을 것이라고 예상했지만 값이 겹치는 범위가 많아서 구분하기 어려움.  
+
+- 상관관계가 매우 크고, 모두 양의 상관관계를 가짐  
+
+
+
+# 같은 부위 뼈의 길이와 너비
+```{r}
+ggplot(bird) +
+  geom_point(aes(x = huml, y = humw, color = type), size = 3) +
+  theme_minimal() +
+  labs(title = "Humerus의 길이와 너비 scatter plot",
+       x = "Length of Humerus",
+       y = "Width of Humerus") +
+  scale_color_brewer(palette = "Set2")
+```
+
+# 다른 부위의 뼈의 길이와 너비
+```{r}
+ggplot(bird) +
+  geom_point(aes(x = ulnal, y = femw, color = type), size = 3) +
+  theme_minimal() +
+  labs(title = "Ulna의 길이와 Femur의 너비 scatter plot",
+       x = "Length of Ulna",
+       y = "Width of Femur") +
+  scale_color_brewer(palette = "Set3")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
